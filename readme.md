@@ -9,9 +9,11 @@ The Blog API is a RESTful service that allows users to create, read, update, and
 - [Project Structure](#project-structure)
 - [Entities](#entities)
 - [API Endpoints](#api-endpoints)
-- [Security Measures](#security-measures)
 - [Code Quality and Organization](#code-quality-and-organization)
-- [Running the Project](#running-the-project)
+- [Features](#features)
+- [Security Measures](#security-measures)
+- [Creativity and Problem-Solving Approach](#creativity-and-problem-solving-approach)
+- [Installation](#installation)
 - [License](#license)
 
 ## Tech Stack
@@ -40,6 +42,10 @@ blog-service
  │ ├── middleware # Middleware functions
  │ ├── repositories # Data access layer
  │ ├── services # Business logic and service layer
+ │ └── db.go           # Database initialization
+ │ └── redis.go        # Redis initialization
+ │ └── migration.go    # Database migration handling
+ │ └── routes.go       # Routes definition
 ├── docs # Swagger documentation
 ├── entrypoint.sh # Entrypoint script for Docker
 ├── .env.docker # Environment variables for build local
@@ -82,10 +88,40 @@ blog-service
 
 10. **lint.py**: A script that helps maintain code quality by checking for linting issues and ensuring adherence to coding standards.
 
-Feel free to adjust any part of the explanation to better fit your project's specifics!
-
 
 ## Database Tables Structure
+### Database Schema
+#### users
+
+| Column         | Type         | Index   |
+|----------------|--------------|---------|
+| `id`           | Integer      | PK      |
+| `name`         | String       |         |
+| `email`        | String       | Unique  |
+| `password_hash`| String       |         |
+| `created_at`   | Timestamp    |         |
+| `updated_at`   | Timestamp    |         |
+
+#### post
+
+| Column         | Type         | Index   |
+|----------------|--------------|---------|
+| `id`           | Integer      | PK      |
+| `title`        | String       |         |
+| `content`      | Text         |         |
+| `author_id`    | Integer      | FK(User)|
+| `created_at`   | Timestamp    |         |
+| `updated_at`   | Timestamp    |         |
+
+#### comments
+
+| Column         | Type         | Index   |
+|----------------|--------------|---------|
+| `id`           | Integer      | PK      |
+| `post_id`      | Integer      | FK(Blog Post)|
+| `author_name`  | String       |         |
+| `content`      | Text         |         |
+| `created_at`   | Timestamp    |         |
 
 ### Entities
 
@@ -131,18 +167,41 @@ Feel free to adjust any part of the explanation to better fit your project's spe
 - **PUT /posts/{id}**: Update a blog post.
 - **DELETE /posts/{id}**: Delete a blog post.
 
+### Comments
+- **POST /posts/{id}/comments** - Add a new comment to a specific post.
+- **GET /posts/{id}/comments** - Retrieve all comments associated with a specific post.
+
 ### Documentation
-- You can access the Swagger documentation at: [Swagger UI](http://localhost:8090/swagger/index.html#/Users/post_register)
+- You can access the Swagger documentation at: [Swagger UI](http://localhost:8090/swagger/index.html)
+
+## Code Quality and Organization
+- The project follows Go best practices and is compliant with `golint`, ensuring clean and maintainable code.
+- It is structured into packages (controllers, services, repositories, etc.) that separate concerns, enhancing readability and testability.
+
+## Features
+-  All required features (user registration, authentication, blog CRUD, comments) are complete.
 
 ## Security Measures
 - **XSS Prevention**: The application prevents Cross-Site Scripting (XSS) attacks by escaping HTML special characters in user-generated content.
 - **Security Middleware**: Implemented to enforce security best practices, such as setting security headers.
 - **Rate Limiting**: The API incorporates rate limiting to prevent abuse and denial-of-service attacks.
-- **Authentication**: The service uses token-based authentication (JWT) for securing routes and user management.
+- **HTML Escape**: All special characters are escaped to prevent XSS.
 
-## Code Quality and Organization
-- The project follows Go best practices and is compliant with `golint`, ensuring clean and maintainable code.
-- It is structured into packages (controllers, services, repositories, etc.) that separate concerns, enhancing readability and testability.
+## Creativity and Problem-Solving Approach
+
+In this project, the following creative and problem-solving approaches were applied:
+
+- **Efficient Project Structure**: The project is organized into clean, modular components. Each responsibility, from routing, middleware, database interaction, and services, is separated into distinct directories to promote maintainability and scalability.
+
+- **Post Ownership and Authorization**: To ensure that only the author of a blog post can update or delete it, an ownership check was implemented. This enhances security and ensures proper role-based access control, solving potential issues related to unauthorized modifications.
+
+- **XSS Protection**: All user-generated content, such as blog posts and comments, undergoes HTML sanitization and escaping of special characters. This prevents Cross-Site Scripting (XSS) vulnerabilities and ensures that the API can handle untrusted inputs safely.
+
+- **Rate Limiting**: To protect against brute-force attacks on user login and other endpoints, a rate limiter was implemented. This helps to mitigate potential abuse of the API, ensuring fair usage.
+
+- **Custom Middleware for Security**: Middleware was created to handle authentication using JWT tokens. This ensures that routes which require authentication are protected, while maintaining a clear separation of concerns for security at the application level.
+
+- **Graceful Error Handling**: Thoughtful error handling was applied across API endpoints to provide meaningful error messages to users and maintain consistency in API responses.
 
 ## Sample `.env.docker` File
 
@@ -166,11 +225,25 @@ GIN_MODE=release
 ```
 ## Installation
 
-1. Clone the repository.
-2. Navigate to the project directory. 
-3. Create a `.env.docker` file based on the provided sample.
-4. Build and run the application using Docker Compose:
-```bash
-docker-compose up --build
-```
-5. Access the API at `http://localhost:8090`
+1. **Create Directory**. Create a directory for your project under `$GOPATH/src/github.com/dedenfarhanhub`:
+   ```bash
+   mkdir -p $GOPATH/src/github.com/dedenfarhanhub
+   ```
+2. **Clone the repository**.  Navigate to the project directory. 
+   ```bash
+   cd $GOPATH/src/github.com/dedenfarhanhub
+   git clone https://github.com/dedenfarhanhub/b581007aa20a6533de54b13f08430b5a.git
+   ```
+3. Rename the cloned repository directory to blog-service
+   ```bash
+   mv <cloned-repo> blog-service
+   ```
+4. Create a `.env.docker` file based on the provided sample.
+5. Build and run the application using Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+6. Access the API at `http://localhost:8090`
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
