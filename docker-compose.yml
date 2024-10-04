@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: blog-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8090:8090
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env.docker
+    # Health check to ensure the database is ready
+    healthcheck:
+      test: ["CMD", "nc", "-z", "db", "3306"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: mysql:8.0
+    env_file:
+      - .env.docker
+    volumes:
+      - "./.service-db:/var/lib/mysql"
+    ports:
+      - "3333:3306"
+
+  redis:
+    container_name: redis
+    image: "redis:alpine"
+    ports:
+      - "6380:6379"
+
+volumes:
+  dbdata:
